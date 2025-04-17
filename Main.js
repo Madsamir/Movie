@@ -1,72 +1,144 @@
 let server = "https://tdb01.ruc.dk/tdb-api/?q=";
 let data = [];
 let posterImages = [];
+let noPosterImg;
+let years = [];
+
+let offsetX = 0;
+let dragging = false;
+let lastMouseX = 0;
+
+let arrowX = null;
+let targetIndex = null;
+let animating = false;
+let animationSpeed = 10;
+let targetX = null;
+
+let randomButton;
+
+function preload() {
+  noPosterImg = loadImage("Nosign.png");
+}
 
 function setup() {
-  createCanvas(1600, 800); // Increased canvas size for more room
+  createCanvas(windowWidth, windowHeight);
   textAlign(CENTER, CENTER);
   textSize(12);
+
   loadJSON(server + 
-    "select rating, year, poster FROM movie where (year, rating) IN (select year, MAX(rating) from movie where year BETWEEN 2000 and 2024 GROUP BY year) ORDER BY year ASC", 
+    "select rating, year, poster FROM movie where (year, rating) IN " +
+    "(select year, MAX(rating) from movie where year BETWEEN 2000 and 2024 GROUP BY year) " +
+    "ORDER BY year ASC", 
     gotData);
+
+  // Random-knap
+  randomButton = createButton("Random");
+  randomButton.position(20, 20);
+  randomButton.mousePressed(startRandomSelection);
 }
 
 function gotData(result) {
   data = result;
 
-  // Load the posters after the data is fetched
   for (let i = 0; i < data.length; i++) {
-    if (data[i].poster) {
-      posterImages.push(loadImage(data[i].poster)); // Load the poster image
+    let posterURL = data[i].poster;
+
+    if (posterURL) {
+      loadImage(posterURL, img => {
+        posterImages[i] = img;
+      }, () => {
+        posterImages[i] = noPosterImg;
+      });
     } else {
-      posterImages.push(null); // If no poster is available, push null
+      posterImages[i] = noPosterImg;
     }
+
+    years[i] = data[i].year;
   }
 }
 
-function draw() {
-  background(240);
+function windowResized() {
+  resizeCanvas(windowWidth, windowHeight);
+}
 
-  if (data.length === 0) {
-    text("Loading data...", width / 2, height / 2);
+function draw() {
+  background(255);
+  stroke(0);
+  line(0, height / 2, width, height / 2);
+
+  if (posterImages.length !== data.length) {
+    fill(0);
+    text("Indlæser plakater...", width / 2, height / 2);
     return;
   }
 
-  let startYear = 2000;
-  let endYear = 2024;
+  let spacing = 120;
 
-  // Adjust X-spacing based on the canvas size
-  let xSpacing = (width - 100) / (endYear - startYear); 
-
-  // Draw timeline line
-  stroke(50);
-  line(50, height - 100, width - 50, height - 100); 
-
-  // Draw movie posters and years with vertical spacing
   for (let i = 0; i < data.length; i++) {
-    let x = map(data[i].year, startYear, endYear, 50, width - 50); // Map years to X positions
+    let x = 100 + i * spacing + offsetX;
+    let y = height / 2;
 
-    // Place posters above the timeline (adjusted y position)
-    let y = height - 150;
+    let img = posterImages[i];
+    image(img, x - 25, y - 95, 50, 75);
 
-    // Check for poster collisions and adjust vertical spacing if needed
-    for (let j = 0; j < i; j++) {
-      if (abs(x - map(data[j].year, startYear, endYear, 50, width - 50)) < 50) {
-        y += 50; // Move poster down if too close to another
-      }
-    }
-
-    // Draw year markers on the timeline
+    noStroke();
     fill(0);
-    text(data[i].year, x, height - 80); // Adjusted Y position for years
+    text(data[i].year, x, y + 80);
+    text("★ " + nf(data[i].rating, 1, 1), x, y + 100);
 
-    // Draw the movie poster image
-    if (posterImages[i]) {
-      image(posterImages[i], x - 30, y, 60, 90); // Draw the poster (adjust size as needed)
+    stroke(0);
+    fill(255);
+    ellipse(x, y, 10);
+  }
+
+  if (animating && arrowX !== null && targetX !== null) {
+    let direction = targetX > arrowX ? 1 : -1;
+    arrowX += animationSpeed * direction;
+
+    if (abs(arrowX - targetX) < animationSpeed) {
+      arrowX = targetX;
+      animating = false;
     }
   }
 
-  // Title for the timeline
-  textSize(16);
-  text("Highest Rated Movies (2000–2024)", width / 2, 30);
+  if (arrowX !== null) {
+    drawArrow(arrowX, height / 2 - 120);
+  }
+}
+
+function drawArrow(x, y) {
+  fill(255, 0, 0);
+  noStroke();
+  triangle(x - 10, y, x + 10, y, x, y + 20);
+}
+
+function startRandomSelection() {
+  if (!animating) {
+    let spacing = 120;
+    targetIndex = floor(random(data.length));
+    targetX = 100 + targetIndex * spacing + offsetX;
+    arrowX = 100 + offsetX;
+    animating = true;
+  }
+}
+
+function mousePressed() {
+  dragging = true;
+  lastMouseX = mouseX;
+}
+
+function mouseReleased() {
+  dragging = false;
+}
+
+function mouseDragged() {
+  if (dragging && !animating) {
+    let dx = mouseX - lastMouseX;
+    offsetX += dx;
+    lastMouseX = mouseX;
+
+    if (arrowX !== null) {
+      arrowX += dx;
+    }
+  }
 }
