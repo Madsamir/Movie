@@ -1,9 +1,14 @@
 let server = "https://tdb01.ruc.dk/tdb-api/?q=";
 let data = [];
 let posterImages = [];
+let years = [];
+
+let offsetX = 0;
+let dragging = false;
+let lastMouseX = 0;
 
 function setup() {
-  createCanvas(1600, 800); // Increased canvas size for more room
+  createCanvas(windowWidth, windowHeight);
   textAlign(CENTER, CENTER);
   textSize(12);
   loadJSON(server + 
@@ -11,62 +16,74 @@ function setup() {
     gotData);
 }
 
+function windowResized() {
+  resizeCanvas(windowWidth, windowHeight);
+}
+
 function gotData(result) {
   data = result;
-
-  // Load the posters after the data is fetched
   for (let i = 0; i < data.length; i++) {
-    if (data[i].poster) {
-      posterImages.push(loadImage(data[i].poster)); // Load the poster image
-    } else {
-      posterImages.push(null); // If no poster is available, push null
+    let posterURL = data[i].poster;
+    if (posterURL) {
+      loadImage(posterURL, img => {
+        posterImages[i] = img;
+      });
     }
+    years[i] = data[i].year;
   }
 }
 
 function draw() {
-  background(240);
-
-  if (data.length === 0) {
-    text("Loading data...", width / 2, height / 2);
-    return;
-  }
-
-  let startYear = 2000;
-  let endYear = 2024;
-
-  // Adjust X-spacing based on the canvas size
-  let xSpacing = (width - 100) / (endYear - startYear); 
+  background(255);
+  fill(0);
 
   // Draw timeline line
-  stroke(50);
-  line(50, height - 100, width - 50, height - 100); 
+  stroke(0);
+  line(0, height / 2, width, height / 2);
 
-  // Draw movie posters and years with vertical spacing
-  for (let i = 0; i < data.length; i++) {
-    let x = map(data[i].year, startYear, endYear, 50, width - 50); // Map years to X positions
+  if (posterImages.length === data.length) {
+    let spacing = 120;
 
-    // Place posters above the timeline (adjusted y position)
-    let y = height - 150;
+    for (let i = 0; i < data.length; i++) {
+      let x = 100 + i * spacing + offsetX;
+      let y = height / 2;
 
-    // Check for poster collisions and adjust vertical spacing if needed
-    for (let j = 0; j < i; j++) {
-      if (abs(x - map(data[j].year, startYear, endYear, 50, width - 50)) < 50) {
-        y += 50; // Move poster down if too close to another
+      if (x > -100 && x < width + 100) {
+        noStroke();
+        fill(0);
+        text(years[i], x, y + 80);
+        text("★ " + nf(data[i].rating, 1, 1), x, y + 100);
+
+        if (posterImages[i]) {
+          let img = posterImages[i];
+          let imgW = 50;
+          let imgH = 75;
+          image(img, x - imgW / 2, y - imgH - 20, imgW, imgH);
+        }
+
+        stroke(0);
+        fill(255);
+        ellipse(x, y, 10, 10);
       }
     }
-
-    // Draw year markers on the timeline
-    fill(0);
-    text(data[i].year, x, height - 80); // Adjusted Y position for years
-
-    // Draw the movie poster image
-    if (posterImages[i]) {
-      image(posterImages[i], x - 30, y, 60, 90); // Draw the poster (adjust size as needed)
-    }
+  } else {
+    text("Indlæser plakater...", width / 2, height / 2);
   }
+}
 
-  // Title for the timeline
-  textSize(16);
-  text("Highest Rated Movies (2000–2024)", width / 2, 30);
+function mousePressed() {
+  dragging = true;
+  lastMouseX = mouseX;
+}
+
+function mouseReleased() {
+  dragging = false;
+}
+
+function mouseDragged() {
+  if (dragging) {
+    let dx = mouseX - lastMouseX;
+    offsetX += dx;
+    lastMouseX = mouseX;
+  }
 }
