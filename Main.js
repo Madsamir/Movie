@@ -72,7 +72,7 @@ function draw() {
     return;
   }
 
-  let spacing = 65;
+  let spacing = 80;
 
   for (let i = 0; i < data.length; i++) {
     let x = 100 + i * spacing + offsetX;
@@ -114,7 +114,7 @@ function drawArrow(x, y) {
 
 function startRandomSelection() {
   if (!animating) {
-    let spacing = 65;
+    let spacing = 80; // Samme som i draw()
     targetIndex = floor(random(data.length));
     targetX = 100 + targetIndex * spacing + offsetX;
     arrowX = 100 + offsetX;
