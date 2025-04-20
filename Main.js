@@ -3,17 +3,24 @@ let data = [];
 let posterImages = [];
 let noPosterImg;
 let years = [];
-
+// holder øje med hvor meget du rykker til siden, med musen
 let offsetX = 0;
+// Boolean for at fortælle om du dragger med musen eller ej
 let dragging = false;
+// Opdater/Gemmer musens placering fra sidst.
 let lastMouseX = 0;
 
+// pilens start position 
 let arrowX = null;
+// Bruges til at holde position af den film pilen lander på
 let targetIndex = null;
+// Animation for pilen er false inditl man trykker på knappen og kører pilen. Så den tjekker om pilens animation er i gang
 let animating = false;
+// animation hastighed
 let animationSpeed = 10;
+// Variabler for pilens X-koordinat
 let targetX = null;
-
+// Variabel for vores knap
 let randomButton;
 
 function preload() {
@@ -44,21 +51,16 @@ function gotData(result) {
     let posterURL = data[i].poster;
 
     if (posterURL) {
-      loadImage(posterURL, img => {
-        posterImages[i] = img;
-      }, () => {
-        posterImages[i] = noPosterImg;
-      });
-    } else {
-      posterImages[i] = noPosterImg;
-    }
-
+  posterImages[i] = loadImage(posterURL);
+} else {
+  posterImages[i] = noPosterImg;
+}
+   // samler alle filmenes årstal i en liste.
     years[i] = data[i].year;
   }
-}
 
-function windowResized() {
-  resizeCanvas(windowWidth, windowHeight);
+
+
 }
 
 function draw() {
@@ -66,40 +68,44 @@ function draw() {
   stroke(0);
   line(0, height / 2, width, height / 2);
 
-  if (posterImages.length !== data.length) {
-    fill(0);
-    text("Indlæser plakater...", width / 2, height / 2);
-    return;
-  }
 
-  let spacing = 80;
-
+  let spacing = 70;
+  // bestemmer positionerne for alle filmene
   for (let i = 0; i < data.length; i++) {
-    let x = 100 + i * spacing + offsetX;
+    let x = 100 + i * spacing + offsetX; // "offsetX" til at justere hele positionen. Man rykker tidslinjen 
     let y = height / 2;
-
+    // Bestemmer hvilken "poster" der skal hentes. i bestemmer hvilket
     let img = posterImages[i];
+    // Billede størrelse og position
     image(img, x - 25, y - 95, 50, 75);
 
     noStroke();
     fill(0);
+    // Årstal
     text(data[i].year, x, y + 80);
-    text("★ " + nf(data[i].rating, 1, 1), x, y + 100);
+    // Viser rating under årstal. Henter specifik rating med et heltal og decimal
+    text("Rating" + nf(data[i].rating, 1, 1), x, y + 100);
 
     stroke(0);
     fill(255);
     ellipse(x, y, 10);
   }
-
-  if (animating && arrowX !== null && targetX !== null) {
-    let direction = targetX > arrowX ? 1 : -1;
-    arrowX += animationSpeed * direction;
-
-    if (abs(arrowX - targetX) < animationSpeed) {
-      arrowX = targetX;
-      animating = false;
-    }
+ if (animating && arrowX !== null && targetX !== null) {
+  let direction;
+  // tjekker om pilens mål ligger til højre for pilens start position
+  if (targetX > arrowX) {
+    direction = 1; // Bevæg til højre
   }
+  //flytter pilen
+  arrowX = arrowX + animationSpeed * direction;
+
+  // Tjekker om det er det samme
+  if (arrowX === targetX) {
+  animating = false;
+}
+
+}
+
 
   if (arrowX !== null) {
     drawArrow(arrowX, height / 2 - 120);
@@ -114,7 +120,8 @@ function drawArrow(x, y) {
 
 function startRandomSelection() {
   if (!animating) {
-    let spacing = 80; // Samme som i draw()
+    let spacing = 70; // Samme som i draw()
+    // vælger et tilfældigt 
     targetIndex = floor(random(data.length));
     targetX = 100 + targetIndex * spacing + offsetX;
     arrowX = 100 + offsetX;
