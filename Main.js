@@ -115,8 +115,8 @@ function pickRandom() {
     let spacing = 70;
     // vælger et tilfældigt film
     targetIndex = floor(random(data.length));
-    targetX = targetIndex * spacing; 
-    arrowX = 0;
+    targetX = 30 + targetIndex * spacing; // Justeret X-position
+    arrowX = 30; // Starter fra venstre
     animating = true;
   }
 }
