@@ -2,23 +2,25 @@ let server = "https://tdb01.ruc.dk/tdb-api/?q=";
 let data = [];
 let posterImages = [];
 let noPosterImg;
+let arrowImg; // Variabel til pilens billede
 let years = [];
 
 // pilens start position 
 let arrowX = null;
-// Bruges til at holde position af den film pilen lander på
+// Bruges til at gemme hvilken film pilen skal lande på
 let targetIndex = null;
 // Animation for pilen er false indtil man trykker på knappen og kører pilen. Så den tjekker om pilens animation er i gang
 let animating = false;
 // animation hastighed
 let animationSpeed = 10;
-// Variabler for pilens X-koordinat
+// Variable for pilens X-position
 let targetX = null;
 // Variabel for vores knap
 let randomButton;
 
 function preload() {
   noPosterImg = loadImage("Nosign.png");
+  arrowImg = loadImage("Pil.png"); // Læs pilens billede
 }
 
 function setup() {
@@ -89,38 +91,29 @@ function draw() {
   // Pile-animation
   if (animating && arrowX !== null && targetX !== null) {
     let direction;
-    // tjekker om pilens mål ligger til højre for pilens start position
     if (targetX > arrowX) {
-      direction = 1; // Bevæg til højre
+      direction = 1;
     } else {
-      direction = -1; // Bevæg til venstre (sikkerhed)
+      direction = -1;
     }
 
-    // flytter pilen
     arrowX = arrowX + animationSpeed * direction;
 
-    // Tjekker om det er det samme
     if (arrowX === targetX) {
       animating = false;
     }
   }
 
-  // Tegner pilen
+  // Hvis pilen ikke er "null", og den har en gyldig position skal billedet tegnes
   if (arrowX !== null) {
-    drawArrow(arrowX, height / 2 - 120);
+    image(arrowImg, arrowX - 10, height / 2 - 130, 20, 40); 
   }
-}
-
-function drawArrow(x, y) {
-  fill(255, 0, 0);
-  noStroke();
-  triangle(x - 10, y, x + 10, y, x, y + 20);
 }
 
 function startRandomSelection() {
   if (!animating) {
     let spacing = 70; // Samme som i draw()
-    // vælger et tilfældigt film-index
+    // vælger et tilfældigt film
     targetIndex = floor(random(data.length));
     targetX = 30 + targetIndex * spacing; // Justeret X-position
     arrowX = 30; // Starter fra venstre
