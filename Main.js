@@ -37,7 +37,7 @@ function setup() {
   // Random-knap
   randomButton = createButton("Random");
   randomButton.position(20, 20);
-  randomButton.mousePressed(startRandomSelection);
+  randomButton.mousePressed(pickRandom);
 }
 
 function gotData(result) {
@@ -110,13 +110,13 @@ function draw() {
   }
 }
 
-function startRandomSelection() {
+function pickRandom() {
   if (!animating) {
-    let spacing = 70; // Samme som i draw()
+    let spacing = 70;
     // vælger et tilfældigt film
     targetIndex = floor(random(data.length));
-    targetX = 30 + targetIndex * spacing; // Justeret X-position
-    arrowX = 30; // Starter fra venstre
+    targetX = targetIndex * spacing; 
+    arrowX = 0;
     animating = true;
   }
 }
