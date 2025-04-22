@@ -3,18 +3,12 @@ let data = [];
 let posterImages = [];
 let noPosterImg;
 let years = [];
-// holder øje med hvor meget du rykker til siden, med musen
-let offsetX = 0;
-// Boolean for at fortælle om du dragger med musen eller ej
-let dragging = false;
-// Opdater/Gemmer musens placering fra sidst.
-let lastMouseX = 0;
 
 // pilens start position 
 let arrowX = null;
 // Bruges til at holde position af den film pilen lander på
 let targetIndex = null;
-// Animation for pilen er false inditl man trykker på knappen og kører pilen. Så den tjekker om pilens animation er i gang
+// Animation for pilen er false indtil man trykker på knappen og kører pilen. Så den tjekker om pilens animation er i gang
 let animating = false;
 // animation hastighed
 let animationSpeed = 10;
@@ -51,16 +45,14 @@ function gotData(result) {
     let posterURL = data[i].poster;
 
     if (posterURL) {
-  posterImages[i] = loadImage(posterURL);
-} else {
-  posterImages[i] = noPosterImg;
-}
-   // samler alle filmenes årstal i en liste.
+      posterImages[i] = loadImage(posterURL);
+    } else {
+      posterImages[i] = noPosterImg;
+    }
+
+    // samler alle filmenes årstal i en liste.
     years[i] = data[i].year;
   }
-
-
-
 }
 
 function draw() {
@@ -68,14 +60,16 @@ function draw() {
   stroke(0);
   line(0, height / 2, width, height / 2);
 
-
   let spacing = 70;
+
   // bestemmer positionerne for alle filmene
   for (let i = 0; i < data.length; i++) {
-    let x = 100 + i * spacing + offsetX; // "offsetX" til at justere hele positionen. Man rykker tidslinjen 
+    let x = 30 + i * spacing; // Justeret X-position uden offsetX
     let y = height / 2;
+    
     // Bestemmer hvilken "poster" der skal hentes. i bestemmer hvilket
     let img = posterImages[i];
+    
     // Billede størrelse og position
     image(img, x - 25, y - 95, 50, 75);
 
@@ -86,27 +80,32 @@ function draw() {
     // Viser rating under årstal. Henter specifik rating med et heltal og decimal
     text("Rating" + nf(data[i].rating, 1, 1), x, y + 100);
 
+    // Laver en cirkel for hver film
     stroke(0);
     fill(255);
     ellipse(x, y, 10);
   }
- if (animating && arrowX !== null && targetX !== null) {
-  let direction;
-  // tjekker om pilens mål ligger til højre for pilens start position
-  if (targetX > arrowX) {
-    direction = 1; // Bevæg til højre
+
+  // Pile-animation
+  if (animating && arrowX !== null && targetX !== null) {
+    let direction;
+    // tjekker om pilens mål ligger til højre for pilens start position
+    if (targetX > arrowX) {
+      direction = 1; // Bevæg til højre
+    } else {
+      direction = -1; // Bevæg til venstre (sikkerhed)
+    }
+
+    // flytter pilen
+    arrowX = arrowX + animationSpeed * direction;
+
+    // Tjekker om det er det samme
+    if (arrowX === targetX) {
+      animating = false;
+    }
   }
-  //flytter pilen
-  arrowX = arrowX + animationSpeed * direction;
 
-  // Tjekker om det er det samme
-  if (arrowX === targetX) {
-  animating = false;
-}
-
-}
-
-
+  // Tegner pilen
   if (arrowX !== null) {
     drawArrow(arrowX, height / 2 - 120);
   }
@@ -121,31 +120,10 @@ function drawArrow(x, y) {
 function startRandomSelection() {
   if (!animating) {
     let spacing = 70; // Samme som i draw()
-    // vælger et tilfældigt 
+    // vælger et tilfældigt film-index
     targetIndex = floor(random(data.length));
-    targetX = 100 + targetIndex * spacing + offsetX;
-    arrowX = 100 + offsetX;
+    targetX = 30 + targetIndex * spacing; // Justeret X-position
+    arrowX = 30; // Starter fra venstre
     animating = true;
-  }
-}
-
-function mousePressed() {
-  dragging = true;
-  lastMouseX = mouseX;
-}
-
-function mouseReleased() {
-  dragging = false;
-}
-
-function mouseDragged() {
-  if (dragging && !animating) {
-    let dx = mouseX - lastMouseX;
-    offsetX += dx;
-    lastMouseX = mouseX;
-
-    if (arrowX !== null) {
-      arrowX += dx;
-    }
   }
 }
