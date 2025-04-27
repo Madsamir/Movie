@@ -1,3 +1,4 @@
+// Af Adam Abdulle Isse, Abdurahman Omar Farah og Drees Al-Rashed
 let server = "https://tdb01.ruc.dk/tdb-api/?q=";
 let data = [];
 let posterImages = [];
@@ -66,14 +67,14 @@ function draw() {
 
   // bestemmer positionerne for alle filmene
   for (let i = 0; i < data.length; i++) {
-    let x = 30 + i * spacing; // Justeret X-position uden offsetX
-    let y = height / 2;
+    let x = 30 + i * spacing; // X-positionen for filmene
+    let y = height / 2; // Y-positionen, sætter dem på midten af skærmen
     
     // Bestemmer hvilken "poster" der skal hentes. i bestemmer hvilket
     let img = posterImages[i];
     
     // Billede størrelse og position
-    image(img, x - 25, y - 95, 50, 75);
+    image(img, x, y - 95, 50, 75);
 
     noStroke();
     fill(0);
@@ -115,7 +116,7 @@ function pickRandom() {
     let spacing = 70;
     // vælger et tilfældigt film
     targetIndex = floor(random(data.length));
-    targetX = 30 + targetIndex * spacing; // Justeret X-position
+    targetX = 30 + targetIndex * spacing; 
     arrowX = 30; // Starter fra venstre
     animating = true;
   }
