@@ -74,7 +74,7 @@ function draw() {
     let img = posterImages[i];
     
     // Billede størrelse og position
-    image(img, x, y - 95, 50, 75);
+    image(img, x - 25, y - 95, 50, 75);
 
     noStroke();
     fill(0);
